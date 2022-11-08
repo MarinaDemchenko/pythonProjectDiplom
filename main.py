@@ -1,8 +1,8 @@
+from my_token import token_vk, token_ya
 import requests
+import json
 import time
 from progress.bar import IncrementalBar
-from my_token import token_vk, token_ya
-import json
 
 
 class VkDownloader:
@@ -17,7 +17,7 @@ class VkDownloader:
         res = requests.get('https://api.vk.com/method/photos.get', params=params).json()
         info = res['response']['items']
 
-        bar_download = IncrementalBar('Прогресс скачки фотографий:', max=len(info))
+        bar_download = IncrementalBar('Прогресс скачивания фотографий: ', max=len(info))
 
         photos_url_list = []
         for element in info:
@@ -46,7 +46,7 @@ class YaUploader:
         self.token = token
 
     def create_folder(self, folder_name: str):
-        """Метод создает папку на яндекс диске"""
+        """Метод создает папку на Я.Диске"""
         headers = {'Content-Type': 'application/json', 'Authorization': f'OAuth {self.token}'}
         url_folder = 'https://cloud-api.yandex.net/v1/disk/resources?path=' + folder_name
         requests.put(url_folder, headers=headers)
@@ -90,7 +90,7 @@ class YaUploader:
 
 
 if __name__ == '__main__':
-    owner_id = input('Введите идентификатор пользователя vkontakte: ')
+    owner_id = input('Введите id пользователя VK: ')
     photos_amount = input('Введите количество скачиваемых фотографий (по умолчанию 50): ')
     folder = input('Введите название папки для фотографий на Я.Диске: ')
     downloader = VkDownloader(token_vk)
