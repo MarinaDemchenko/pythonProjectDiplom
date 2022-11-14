@@ -14,8 +14,12 @@ class VkDownloader:
         params = {'v': '5.131', 'access_token': {self.token}, 'owner_id': user_id, 'album_id': 'profile',
                   'extended': '1', 'photo_sizes': '1', 'count': amount}
 
-        res = requests.get('https://api.vk.com/method/photos.get', params=params).json()
-        info = res['response']['items']
+        res = requests.get('https://api.vk.com/method/photos.get', params=params)
+        if res.status_code == 200 or res.status_code == 201:
+            res = res.json()
+            info = res['response']['items']
+        else:
+            print('Ошибка соединения с сервером!')
 
         bar_download = IncrementalBar('Прогресс скачивания фотографий: ', max=len(info))
 
@@ -47,14 +51,16 @@ class YaUploader:
 
     def create_folder(self, folder_name: str):
         """Метод создает папку на Я.Диске"""
+        url = 'https://cloud-api.yandex.net/v1/disk/resources'
+        params = {'path': folder_name}
         headers = {'Content-Type': 'application/json', 'Authorization': f'OAuth {self.token}'}
+        response = requests.get(url, headers=headers, params=params)
         url_folder = 'https://cloud-api.yandex.net/v1/disk/resources?path=' + folder_name
-        requests.put(url_folder, headers=headers)
-        check_folder = requests.get(url_folder, headers=headers)
-        if check_folder.status_code == 200:
+        if response.status_code == 404:
+            requests.put(url_folder, headers=headers, params=params)
             print(f'Папка {folder_name} создана')
         else:
-            print('Ошибка в создании папки')
+            print(f'Папка {folder_name} существует. Придумайте другое название папки.')
 
     def upload(self, photo_list: list[dict], folder_name: str):
         """Метод загружает файлы по URL на яндекс диск"""
@@ -77,7 +83,6 @@ class YaUploader:
         path = folder_name + '/json.txt'
         url = 'https://cloud-api.yandex.net/v1/disk/resources/upload?path=' + path
         json_to_download = requests.get(url, headers=headers).json()
-        # print(f"link got: {json_to_download}")
         with open('json.txt', 'r') as file:
             json_file = file.read()
         try:
